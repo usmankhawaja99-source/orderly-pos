@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>orderly — POS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-obsidian: #050507;
+      --bg-surface: #0b0b0f;
+      --bg-elevated: #121218;
+      --bg-hover: #181820;
+      --fire-primary: #ff5500;
+      --fire-deep: #e04400;
+      --fire-glow: rgba(255, 85, 0, 0.25);
+      --fire-tint: rgba(255, 85, 0, 0.09);
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-active: #ff5500;
+      --text-primary: #ffffff;
+      --text-secondary: #9ca3af;
+      --text-muted: #52525b;
+      --success: #10b981;
+      --radius-xl: 20px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-obsidian);
+      color: var(--text-primary);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* TOP HEADER */
+    header {
+      height: 66px;
+      padding: 0 26px;
+      background: var(--bg-obsidian);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 40;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-wordmark {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: -1.3px;
+      color: var(--fire-primary);
+      text-transform: lowercase;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .playbook-btn {
+      background: rgba(255, 85, 0, 0.12);
+      border: 1px solid rgba(255, 85, 0, 0.35);
+      color: var(--fire-primary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 99px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .playbook-btn:hover {
+      background: var(--fire-primary);
+      color: #fff;
+    }
+
+    .server-badge {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* MAIN VIEWPORT */
+    main {
+      flex: 
