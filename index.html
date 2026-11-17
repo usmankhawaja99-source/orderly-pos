@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>orderly — POS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-obsidian: #050507;
+      --bg-surface: #0b0b0f;
+      --bg-elevated: #121218;
+      --bg-hover: #181820;
+      --fire-primary: #ff5500;
+      --fire-deep: #e04400;
+      --fire-glow: rgba(255, 85, 0, 0.25);
+      --fire-tint: rgba(255, 85, 0, 0.09);
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-active: #ff5500;
+      --text-primary: #ffffff;
+      --text-secondary: #9ca3af;
+      --text-muted: #52525b;
+      --success: #10b981;
+      --radius-xl: 20px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-obsidian);
+      color: var(--text-primary);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* TOP HEADER */
+    header {
+      height: 66px;
+      padding: 0 26px;
+      background: var(--bg-obsidian);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 40;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-wordmark {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: -1.3px;
+      color: var(--fire-primary);
+      text-transform: lowercase;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .playbook-btn {
+      background: rgba(255, 85, 0, 0.12);
+      border: 1px solid rgba(255, 85, 0, 0.35);
+      color: var(--fire-primary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 99px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .playbook-btn:hover {
+      background: var(--fire-primary);
+      color: #fff;
+    }
+
+    .server-badge {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* MAIN VIEWPORT */
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* =========================================================
+       SCREEN 1: SERVER TABLES & LIVE PREVIEW
+       ========================================================= */
+    .preview-pane {
+      width: 400px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    .preview-header {
+      padding: 22px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .preview-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--fire-primary);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-preview-mobile {
+      display: none;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .preview-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .preview-table-num {
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .preview-seated-time {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .preview-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .preview-item-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .preview-item-mods {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    .preview-item-price {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .preview-footer {
+      padding: 20px 24px;
+      background: rgba(0, 0, 0, 0.35);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      padding-top: 8px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .btn-fire {
+      width: 100%;
+      padding: 15px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--fire-primary);
+      color: #fff;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+
+    .btn-fire:hover {
+      background: var(--fire-deep);
+    }
+
+    .btn-fire:active {
+      transform: scale(0.98);
+    }
+
+    /* SQUARE TABLE TILES */
+    .floor-area {
+      flex: 1;
+      padding: 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .floor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .floor-heading {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .gesture-legend {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .gesture-legend span {
+      color: var(--fire-primary);
+    }
+
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 18px;
+    }
+
+    .table-tile {
+      aspect-ratio: 1 / 1;
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .table-tile:hover {
+      background: var(--bg-hover);
+    }
+
+    .table-tile:active {
+      transform: scale(0.96);
+    }
+
+    .table-tile.selected {
+      border-color: var(--fire-primary);
+      background: var(--fire-tint);
+      box-shadow: 0 0 28px var(--fire-glow);
+    }
+
+    .table-tile.empty-table {
+      opacity: 0.55;
+    }
+
+    .table-tile.empty-table.selected {
+      opacity: 1;
+    }
+
+    .tile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .tile-num {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+
+    .table-tile.selected .tile-num {
+      color: var(--fire-primary);
+    }
+
+    .tile-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--fire-primary);
+      box-shadow: 0 0 10px var(--fire-primary);
+    }
+
+    .empty-table .tile-dot {
+      background: var(--text-muted);
+      box-shadow: none;
+    }
+
+    .tile-mid {
+      margin-top: auto;
+      padding-bottom: 10px;
+    }
+
+    .tile-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .tile-time {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .tile-foot {
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .tile-bill {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .table-tile.selected .tile-bill {
+      color: var(--fire-primary);
+    }
+
+    @media (max-width: 1024px) {
+      .preview-pane {
+        position: fixed;
+        top: 66px;
+        bottom: 0;
+        left: -100%;
+        width: 100%;
+        max-width: 440px;
+        transition: left 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 16px 0 48px rgba(0, 0, 0, 0.85);
+      }
+      .preview-pane.drawer-open {
+        left: 0;
+      }
+      .close-preview-mobile {
+        display: inline-block;
+      }
+    }
+
+    /* =========================================================
+       SCREEN 2: SINGLE-SCREEN ORDER EDITOR (< 3 CLICKS)
+       ========================================================= */
+    .menu-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 24px;
+      gap: 16px;
+      overflow: hidden;
+      background: var(--bg-obsidian);
+    }
+
+    .editor-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-tables-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 9px 16px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+    }
+
+    .back-tables-btn:hover {
+      border-color: var(--fire-primary);
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .cat-tab {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .cat-tab.active {
+      background: var(--fire-tint);
+      border-color: var(--fire-primary);
+      color: #fff;
+    }
+
+    .menu-items-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-auto-rows: 124px;
+      gap: 12px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .menu-tile {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: transform 0.1s ease, border-color 0.15s ease;
+    }
+
+    .menu-tile:hover {
+      border-color: var(--fire-primary);
+    }
+
+    .menu-tile:active {
+      transform: scale(0.96);
+    }
+
+    .menu-tile-name {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .menu-tile-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .menu-tile-price {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--fire-primary);
+    }
+
+    .menu-tile-cat {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* RIGHT SIDE: ACTIVE CHECK */
+    .check-pane {
+      width: 430px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .check-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .check-table-title {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+
+    .check-gesture-hint {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 5px 10px;
+      border-radius: 6px;
+    }
+
+    .check-items-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .check-item-card {
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color 0.12s ease, background 0.12s ease, transform 0.08s ease;
+    }
+
+    .check-item-card:active {
+      transform: scale(0.985);
+    }
+
+    .check-item-card.modifying {
+      border-color: var(--fire-primary);
+      background: var(--fire-tint);
+      box-shadow: 0 0 18px rgba(255, 85, 0, 0.15);
+    }
+
+    .check-item-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .check-mods-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .mod-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 5px;
+      background: rgba(255, 85, 0, 0.16);
+      color: var(--fire-primary);
+    }
+
+    .inline-mod-drawer {
+      padding: 14px 20px;
+      background: rgba(255, 85, 0, 0.06);
+      border-top: 1px solid rgba(255, 85, 0, 0.35);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .mod-drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--fire-primary);
+    }
+
+    .mod-options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+
+    .mod-chip-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 8px 6px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.1s ease;
+    }
+
+    .mod-chip-btn:hover {
+      border-color: var(--fire-primary);
+    }
+
+    .mod-chip-btn:active, .mod-chip-btn.applied {
+      background: var(--fire-primary);
+      border-color: var(--fire-primary);
+      color: #fff;
+    }
+
+    .check-footer {
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.45);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .split-selector {
+      display: flex;
+      gap: 6px;
+    }
+
+    .split-btn {
+      flex: 1;
+      padding: 6px 0;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+
+    .split-btn.active {
+      border-color: var(--fire-primary);
+      color: var(--fire-primary);
+      background: var(--fire-tint);
+    }
+
+    .checkout-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 8px;
+    }
+
+    .btn-secondary {
+      padding: 13px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-secondary);
+    }
+
+    /* =========================================================
+       CUSTOMER TIP MODAL (NEW)
+       ========================================================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .tip-card {
+      width: 100%;
+      max-width: 580px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-active);
+      border-radius: var(--radius-xl);
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 24px 80px rgba(255, 85, 0, 0.15);
+      text-align: center;
+    }
+
+    .tip-title {
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .tip-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-top: -16px;
+      font-weight: 600;
+    }
+
+    .tip-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+    }
+
+    .tip-btn {
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tip-btn:hover {
+      border-color: var(--fire-primary);
+      background: var(--fire-tint);
+    }
+
+    .tip-btn:active {
+      transform: scale(0.95);
+    }
+
+    .tip-btn.highlight {
+      border-color: var(--fire-primary);
+      background: rgba(255, 85, 0, 0.12);
+    }
+
+    .tip-btn-pct {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--text-primary);
+    }
+
+    .tip-btn.highlight .tip-btn-pct {
+      color: var(--fire-primary);
+    }
+
+    .tip-btn-amt {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .tip-alt-actions {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .tip-alt-btn {
+      flex: 1;
+      padding: 16px;
+      background: transparent;
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .tip-alt-btn:active {
+      background: var(--bg-elevated);
+    }
+
+    .tip-cancel {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    /* TOAST FEEDBACK */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--bg-elevated);
+      border: 1px solid var(--fire-primary);
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      .screen.active { flex-direction: column; }
+      .check-pane { width: 100%; height: 55%; border-left: none; border-top: 1px solid var(--border-subtle); }
+      .menu-pane { height: 45%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-group">
+      <div class="logo-wordmark" onclick="goToFloor()">orderly</div>
+    </div>
+    <div class="header-actions">
+      <div class="server-badge">
+        <span>Server: Usman</span>
+        <span class="mono" id="clock-display">7:45 PM</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- SCREEN 1: SERVER TABLES -->
+    <section id="screen-floor" class="screen active">
+      <aside class="preview-pane" id="preview-pane">
+        <div class="preview-header">
+          <div class="preview-kicker">
+            <span id="prev-badge">ACTIVE CHECK PREVIEW</span>
+            <button class="close-preview-mobile" onclick="closeMobileDrawer()">✕ Close</button>
+          </div>
+          <div class="preview-title-row">
+            <div class="preview-table-num" id="prev-table-num">Table 12</div>
+            <div class="preview-seated-time mono" id="prev-seated-time">42m seated</div>
+          </div>
+        </div>
+        <div class="preview-list" id="prev-items-list"></div>
+        <div class="preview-footer">
+          <div class="summary-line mono"><span>Subtotal</span><span id="prev-sub">$0.00</span></div>
+          <div class="summary-line mono"><span>Tax (8.25%)</span><span id="prev-tax">$0.00</span></div>
+          <div class="summary-total mono"><span>Current Bill</span><span id="prev-total" style="color: var(--fire-primary);">$0.00</span></div>
+          <button class="btn-fire" onclick="openTableEditor(selectedTableId)">Open & Modify Order →</button>
+        </div>
+      </aside>
+
+      <div class="floor-area">
+        <div class="floor-header">
+          <div class="floor-heading">My Active Section</div>
+          <div class="gesture-legend"><span>1 Tap</span> Preview &nbsp;•&nbsp; <span>2 Taps</span> Open Order</div>
+        </div>
+        <div class="tables-grid" id="tables-grid"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: ORDER EDITOR -->
+    <section id="screen-editor" class="screen">
+      <div class="menu-pane">
+        <div class="editor-top-bar">
+          <button class="back-tables-btn" onclick="goToFloor()">← My Tables</button>
+          <div class="category-tabs" id="category-tabs">
+            <button class="cat-tab active" onclick="selectCategory('ALL', this)">All Items</button>
+            <button class="cat-tab" onclick="selectCategory('Mains', this)">Mains</button>
+            <button class="cat-tab" onclick="selectCategory('Wood-Fired', this)">Wood-Fired</button>
+            <button class="cat-tab" onclick="selectCategory('Sides', this)">Sides</button>
+            <button class="cat-tab" onclick="selectCategory('Drinks', this)">Drinks</button>
+          </div>
+        </div>
+        <div class="menu-items-grid" id="menu-items-grid"></div>
+      </div>
+
+      <aside class="check-pane">
+        <div class="check-header">
+          <div class="check-table-title" id="editor-table-title">Table 12</div>
+          <div class="check-gesture-hint">2x Tap: Modify • 3x Tap: Delete</div>
+        </div>
+        
+        <div class="check-items-list" id="check-items-list"></div>
+
+        <div class="inline-mod-drawer" id="inline-mod-drawer">
+          <div class="mod-drawer-head">
+            <span id="mod-target-label">Select an item to modify</span>
+            <span style="color: var(--text-secondary); font-weight: 600;">Instant Mods</span>
+          </div>
+          <div class="mod-options-grid" id="mod-options-grid"></div>
+        </div>
+
+        <div class="check-footer">
+          <div class="split-selector">
+            <button class="split-btn active" onclick="setSplitCount(1, this)">Full Check</button>
+            <button class="split-btn" onclick="setSplitCount(2, this)">Split 1/2</button>
+            <button class="split-btn" onclick="setSplitCount(3, this)">Split 1/3</button>
+            <button class="split-btn" onclick="setSplitCount(4, this)">Split 1/4</button>
+          </div>
+          <div class="summary-line mono"><span>Subtotal</span><span id="ed-sub">$0.00</span></div>
+          <div class="summary-line mono"><span>Tax (8.25%)</span><span id="ed-tax">$0.00</span></div>
+          <div class="summary-total mono" style="font-size: 19px;">
+            <span id="ed-total-label">Total Due</span>
+            <span id="ed-total" style="color: var(--fire-primary);">$0.00</span>
+          </div>
+          <div class="checkout-buttons">
+            <button class="btn-secondary" onclick="fireToKitchen()">Send Kitchen</button>
+            <button class="btn-fire" style="padding: 13px 10px; font-size: 13px;" onclick="presentTipScreen()">
+              Close ($0 Fee Terminal)
+            </button>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <!-- CUSTOMER TIP MODAL -->
+  <div class="modal-overlay" id="tip-modal">
+    <div class="tip-card">
+      <div>
+        <div class="tip-title">Add a Tip</div>
+        <div class="tip-subtitle mono" id="tip-base-total" style="margin-top: 8px;">Total Due: $0.00</div>
+      </div>
+
+      <div class="tip-grid">
+        <button class="tip-btn" onclick="applyTipPercent(0.18)">
+          <div class="tip-btn-pct">18%</div>
+          <div class="tip-btn-amt mono" id="tip-amt-18">$0.00</div>
+        </button>
+        <button class="tip-btn highlight" onclick="applyTipPercent(0.20)">
+          <div class="tip-btn-pct">20%</div>
+          <div class="tip-btn-amt mono" id="tip-amt-20">$0.00</div>
+        </button>
+        <button class="tip-btn" onclick="applyTipPercent(0.22)">
+          <div class="tip-btn-pct">22%</div>
+          <div class="tip-btn-amt mono" id="tip-amt-22">$0.00</div>
+        </button>
+      </div>
+
+      <div class="tip-alt-actions">
+        <button class="tip-alt-btn" onclick="applyCustomTip()">Custom Tip</button>
+        <button class="tip-alt-btn" onclick="applyTipFlat(0)">No Tip</button>
+      </div>
+
+      <div class="tip-cancel" onclick="closeTipScreen()">Cancel / Return to Server</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const TAX_RATE = 0.0825;
+    const MENU_CATALOG = [
+      { id: 'm1', name: 'Double Fire Smash Burger', category: 'Mains', price: 15.50, mods: ['No Onions', 'No Aioli', 'Extra Pickles', 'Sub GF Bun'] },
+      { id: 'm2', name: 'Spinach, Feta & Jalapeño Pie', category: 'Wood-Fired', price: 18.50, mods: ['Crispy Crust', 'Light Cheese', 'Extra Jalapeño', 'No Onions'] },
+      { id: 'm3', name: 'Hot Honey Pepperoni Pie', category: 'Wood-Fired', price: 19.00, mods: ['Extra Hot Honey', 'Well Done', 'No Chili Flakes'] },
+      { id: 'm4', name: 'Birria Crunch Tacos (3pc)', category: 'Mains', price: 16.00, mods: ['No Cilantro', 'No Onions', 'Extra Consommé'] },
+      { id: 'm5', name: 'Charred Chicken Pesto Sub', category: 'Mains', price: 14.50, mods: ['No Red Onions', 'No Tomato', 'Extra Pesto'] },
+      { id: 'm6', name: 'Truffle Parm Fries', category: 'Sides', price: 8.00, mods: ['No Truffle Oil', 'Extra Parm', 'Crispy'] },
+      { id: 'm7', name: 'Blistered Shishito Peppers', category: 'Sides', price: 9.50, mods: ['Extra Char', 'Yuzu Dip Side'] },
+      { id: 'm8', name: 'Blood Orange Margarita', category: 'Drinks', price: 13.00, mods: ['Tajín Rim', 'Salt Rim', 'No Rim'] },
+      { id: 'm9', name: 'Yuzu Ginger Spritz', category: 'Drinks', price: 7.50, mods: ['Zero Proof', 'Extra Lime'] }
+    ];
+
+    let tables = [
+      { id: 12, seatedTime: '42m', items: [{ menuId: 'm2', name: 'Spinach, Feta & Jalapeño Pie', price: 18.50, mods: ['Crispy Crust'] }, { menuId: 'm1', name: 'Double Fire Smash Burger', price: 15.50, mods: ['No Aioli'] }] },
+      { id: 14, seatedTime: '18m', items: [{ menuId: 'm5', name: 'Charred Chicken Pesto Sub', price: 14.50, mods: [] }, { menuId: 'm9', name: 'Yuzu Ginger Spritz', price: 7.50, mods: [] }] },
+      { id: 15, seatedTime: '1h 12m', items: [{ menuId: 'm3', name: 'Hot Honey Pepperoni Pie', price: 19.00, mods: [] }] },
+      { id: 18, seatedTime: '9m', items: [{ menuId: 'm7', name: 'Blistered Shishito Peppers', price: 9.50, mods: [] }] },
+      { id: 21, seatedTime: '—', items: [] },
+      { id: 22, seatedTime: '—', items: [] },
+      { id: 24, seatedTime: '31m', items: [{ menuId: 'm6', name: 'Truffle Parm Fries', price: 8.00, mods: [] }] },
+      { id: 25, seatedTime: '—', items: [] }
+    ];
+
+    let selectedTableId = 12;
+    let activeCategory = 'ALL';
+    let activeCheckItemIdx = null;
+    let splitDivisor = 1;
+
+    let tableTapTimer = null;
+    let lastTableTapped = null;
+    let itemTapCounts = {};
+    let itemTapTimers = {};
+    let pendingCheckoutTotal = 0; // Stores base total before tip
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(el._hideTimeout);
+      el._hideTimeout = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    function calcSubtotal(table) { return table.items.reduce((sum, item) => sum + item.price, 0); }
+    function calcTotal(table) { const sub = calcSubtotal(table); return sub + (sub * TAX_RATE); }
+
+    function renderFloorTiles() {
+      const grid = document.getElementById('tables-grid');
+      grid.innerHTML = tables.map(t => {
+        const isSelected = t.id === selectedTableId;
+        const isEmpty = t.items.length === 0;
+        const total = calcTotal(t);
+        return `
+          <div class="table-tile ${isSelected ? 'selected' : ''} ${isEmpty ? 'empty-table' : ''}" onclick="onTableTileTap(${t.id})">
+            <div class="tile-header"><div class="tile-num">${t.id}</div><div class="tile-dot"></div></div>
+            <div class="tile-mid"><div class="tile-label">Time Seated</div><div class="tile-time mono">${isEmpty ? 'Open Table' : t.seatedTime}</div></div>
+            <div class="tile-foot"><span class="tile-label">Bill</span><span class="tile-bill mono">$${total.toFixed(2)}</span></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPreviewPanel(tableId) {
+      const table = tables.find(t => t.id === tableId);
+      if (!table) return;
+      const isEmpty = table.items.length === 0;
+      document.getElementById('prev-badge').textContent = isEmpty ? 'OPEN TABLE' : 'ACTIVE CHECK PREVIEW';
+      document.getElementById('prev-table-num').textContent = `Table ${table.id}`;
+      document.getElementById('prev-seated-time').textContent = isEmpty ? 'Available' : `${table.seatedTime} seated`;
+      
+      const list = document.getElementById('prev-items-list');
+      list.innerHTML = isEmpty ? `<div style="margin:auto; text-align:center; color:var(--text-muted); font-size:14px;">No active order.</div>` : 
+        table.items.map(item => `<div class="preview-row"><div><div class="preview-item-name">${item.name}</div>${item.mods.length ? `<div class="preview-item-mods">${item.mods.join(', ')}</div>` : ''}</div><div class="preview-item-price mono">$${item.price.toFixed(2)}</div></div>`).join('');
+      
+      const sub = calcSubtotal(table);
+      const tax = sub * TAX_RATE;
+      document.getElementById('prev-sub').textContent = `$${sub.toFixed(2)}`;
+      document.getElementById('prev-tax').textContent = `$${tax.toFixed(2)}`;
+      document.getElementById('prev-total').textContent = `$${(sub + tax).toFixed(2)}`;
+    }
+
+    function onTableTileTap(tableId) {
+      if (lastTableTapped === tableId && tableTapTimer) {
+        clearTimeout(tableTapTimer); tableTapTimer = null; lastTableTapped = null;
+        openTableEditor(tableId);
+      } else {
+        lastTableTapped = tableId; selectedTableId = tableId;
+        renderFloorTiles(); renderPreviewPanel(tableId);
+        if (window.innerWidth <= 1024) document.getElementById('preview-pane').classList.add('drawer-open');
+        tableTapTimer = setTimeout(() => { tableTapTimer = null; lastTableTapped = null; }, 300);
+      }
+    }
+    function closeMobileDrawer() { document.getElementById('preview-pane').classList.remove('drawer-open'); }
+
+    function openTableEditor(tableId) {
+      selectedTableId = tableId; splitDivisor = 1;
+      document.querySelectorAll('.split-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+      const table = tables.find(t => t.id === tableId);
+      activeCheckItemIdx = table.items.length > 0 ? table.items.length - 1 : null;
+      document.getElementById('screen-floor').classList.remove('active');
+      document.getElementById('screen-editor').classList.add('active');
+      closeMobileDrawer(); renderMenuCatalog(); renderActiveCheck();
+    }
+    function goToFloor() { document.getElementById('screen-editor').classList.remove('active'); document.getElementById('screen-floor').classList.add('active'); renderFloorTiles(); renderPreviewPanel(selectedTableId); }
+    function selectCategory(cat, btn) { activeCategory = cat; document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); renderMenuCatalog(); }
+
+    function renderMenuCatalog() {
+      const grid = document.getElementById('menu-items-grid');
+      const filtered = MENU_CATALOG.filter(m => activeCategory === 'ALL' || m.category === activeCategory);
+      grid.innerHTML = filtered.map(item => `
+        <div class="menu-tile" onclick="ringInMenuItem('${item.id}')">
+          <div class="menu-tile-name">${item.name}</div>
+          <div class="menu-tile-foot"><span class="menu-tile-price mono">$${item.price.toFixed(2)}</span><span class="menu-tile-cat">${item.category}</span></div>
+        </div>`).join('');
+    }
+
+    function ringInMenuItem(menuId) {
+      const menuObj = MENU_CATALOG.find(m => m.id === menuId);
+      const table = tables.find(t => t.id === selectedTableId);
+      if (!menuObj || !table) return;
+      if (table.seatedTime === '—') table.seatedTime = '1m';
+      table.items.push({ menuId: menuObj.id, name: menuObj.name, price: menuObj.price, mods: [] });
+      activeCheckItemIdx = table.items.length - 1;
+      renderActiveCheck();
+    }
+
+    function renderActiveCheck() {
+      const table = tables.find(t => t.id === selectedTableId);
+      document.getElementById('editor-table-title').textContent = `Table ${table.id}`;
+      const listEl = document.getElementById('check-items-list');
+      listEl.innerHTML = table.items.length === 0 ? `<div style="margin:auto; text-align:center; color:var(--text-muted); font-size:14px;">Tap menu item to ring in.</div>` : 
+        table.items.map((item, idx) => `
+          <div class="check-item-card ${idx === activeCheckItemIdx ? 'modifying' : ''}" onclick="onCheckItemTap(${idx})">
+            <div class="check-item-main"><span>${item.name}</span><span class="mono">$${item.price.toFixed(2)}</span></div>
+            ${item.mods.length > 0 ? `<div class="check-mods-wrap">${item.mods.map(m => `<span class="mod-pill">${m}</span>`).join('')}</div>` : ''}
+          </div>`).join('');
+      renderModifierDrawer(table); renderEditorTotals(table);
+    }
+
+    function renderModifierDrawer(table) {
+      const label = document.getElementById('mod-target-label'); const grid = document.getElementById('mod-options-grid');
+      if (activeCheckItemIdx === null || !table.items[activeCheckItemIdx]) { label.textContent = 'Tap or 2x-tap item to modify'; grid.innerHTML = ''; return; }
+      const targetItem = table.items[activeCheckItemIdx];
+      const availableMods = (MENU_CATALOG.find(m => m.id === targetItem.menuId) || {}).mods || [];
+      label.textContent = `Mods: ${targetItem.name}`;
+      grid.innerHTML = availableMods.map(mod => `<button class="mod-chip-btn ${targetItem.mods.includes(mod) ? 'applied' : ''}" onclick="toggleItemMod('${mod}')">${mod}</button>`).join('');
+    }
+
+    function toggleItemMod(modName) {
+      const table = tables.find(t => t.id === selectedTableId);
+      const item = table.items[activeCheckItemIdx];
+      const existingIdx = item.mods.indexOf(modName);
+      if (existingIdx > -1) item.mods.splice(existingIdx, 1); else item.mods.push(modName);
+      renderActiveCheck();
+    }
+
+    function onCheckItemTap(idx) {
+      if (!itemTapCounts[idx]) itemTapCounts[idx] = 0;
+      itemTapCounts[idx]++;
+      clearTimeout(itemTapTimers[idx]);
+      itemTapTimers[idx] = setTimeout(() => {
+        const taps = itemTapCounts[idx]; itemTapCounts[idx] = 0;
+        const table = tables.find(t => t.id === selectedTableId);
+        if (taps >= 3) {
+          const removedName = table.items[idx].name; table.items.splice(idx, 1);
+          activeCheckItemIdx = table.items.length > 0 ? table.items.length - 1 : null;
+          renderActiveCheck(); showToast(`Removed ${removedName}`);
+        } else if (taps === 2) { activeCheckItemIdx = idx; renderActiveCheck(); showToast(`Modifying ${table.items[idx].name}`);
+        } else { activeCheckItemIdx = idx; renderActiveCheck(); }
+      }, 290);
+    }
+
+    function setSplitCount(ways, btn) { splitDivisor = ways; document.querySelectorAll('.split-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderEditorTotals(tables.find(t => t.id === selectedTableId)); }
+
+    function renderEditorTotals(table) {
+      const sub = calcSubtotal(table); const tax = sub * TAX_RATE; const due = (sub + tax) / splitDivisor;
+      document.getElementById('ed-sub').textContent = `$${sub.toFixed(2)}`;
+      document.getElementById('ed-tax').textContent = `$${tax.toFixed(2)}`;
+      document.getElementById('ed-total-label').textContent = splitDivisor > 1 ? `Split Due (1/${splitDivisor})` : 'Total Due';
+      document.getElementById('ed-total').textContent = `$${due.toFixed(2)}`;
+    }
+
+    function fireToKitchen() { showToast(`Table ${selectedTableId} fired to Kitchen KDS`); goToFloor(); }
+
+    /* =========================================================
+       CUSTOMER TIP WORKFLOW
+       ========================================================= */
+    function presentTipScreen() {
+      const table = tables.find(t => t.id === selectedTableId);
+      if (table.items.length === 0) { showToast('Table is currently empty.'); return; }
+      
+      const sub = calcSubtotal(table);
+      const tax = sub * TAX_RATE;
+      pendingCheckoutTotal = (sub + tax) / splitDivisor;
+
+      document.getElementById('tip-base-total').textContent = `Total Due: $${pendingCheckoutTotal.toFixed(2)}`;
+      document.getElementById('tip-amt-18').textContent = `+$${(pendingCheckoutTotal * 0.18).toFixed(2)}`;
+      document.getElementById('tip-amt-20').textContent = `+$${(pendingCheckoutTotal * 0.20).toFixed(2)}`;
+      document.getElementById('tip-amt-22').textContent = `+$${(pendingCheckoutTotal * 0.22).toFixed(2)}`;
+      
+      document.getElementById('tip-modal').classList.add('open');
+    }
+
+    function closeTipScreen() {
+      document.getElementById('tip-modal').classList.remove('open');
+    }
+
+    function applyTipPercent(pct) {
+      const tipAmt = pendingCheckoutTotal * pct;
+      finalizeZeroFeeSale(tipAmt);
+    }
+
+    function applyTipFlat(amt) {
+      finalizeZeroFeeSale(amt);
+    }
+
+    function applyCustomTip() {
+      const input = prompt("Enter custom tip amount (e.g. 5.00):", "");
+      if (input !== null) {
+        const amt = parseFloat(input);
+        if (!isNaN(amt) && amt >= 0) {
+          finalizeZeroFeeSale(amt);
+        } else {
+          alert("Invalid amount entered.");
+        }
+      }
+    }
+
+    function finalizeZeroFeeSale(tipAmount) {
+      const finalCharged = pendingCheckoutTotal + tipAmount;
+      const table = tables.find(t => t.id === selectedTableId);
+      
+      table.items = [];
+      table.seatedTime = '—';
+      activeCheckItemIdx = null;
+      
+      closeTipScreen();
+      showToast(`Sale Complete: $${finalCharged.toFixed(2)} (inc. $${tipAmount.toFixed(2)} tip)`);
+      goToFloor();
+    }
+
+    renderFloorTiles();
+    renderPreviewPanel(selectedTableId);
+  </script>
+</body>
+</html>
